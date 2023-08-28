@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animation_practice/src/animated_splash/animated_splash_screen.dart';
+import 'package:flutter_animation_practice/src/logo_loading/logo_loading_widget.dart';
 import 'package:flutter_animation_practice/src/sliverpersisentheaderdelegate/detail_page.dart';
 
 void main() {
@@ -23,7 +24,6 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
 
 class MainPage extends StatelessWidget {
   const MainPage({super.key});
@@ -55,6 +55,15 @@ class MainPage extends StatelessWidget {
                 ),
               ),
               child: const Text("Animated Splash Screen"),
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const LogoLoadingWidget(),
+                ),
+              ),
+              child: const Text("Skill Sewa Logo Loading"),
             )
           ],
         ),
@@ -62,4 +71,3 @@ class MainPage extends StatelessWidget {
     );
   }
 }
-
