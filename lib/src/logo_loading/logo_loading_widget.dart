@@ -20,12 +20,11 @@ class _LogoLoadingWidgetState extends State<LogoLoadingWidget>
   _setupAnimation() {
     _linearProgressController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 5000),
     )..addListener(() {
         if (_linearProgressController.isCompleted) {
-          _linearProgressController.repeat();
+          // _linearProgressController.repeat();
         }
-        setState(() {});
       });
 
     _progressAnimation = CurvedAnimation(
@@ -50,43 +49,55 @@ class _LogoLoadingWidgetState extends State<LogoLoadingWidget>
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.sizeOf(context);
+    // final size = MediaQuery.sizeOf(context);
     // print(_progressAnimation.value);
     return Scaffold(
       backgroundColor: Colors.white,
       body: Transform.scale(
-        scale: .5,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Center(
-              child: SizedBox.square(
-                dimension: 100,
-                child: CustomPaint(
-                  painter: LinePainter(
-                    progressValue: _progressAnimation.value,
-                    strokeWidth: 10,
-                  ),
-                ),
-              ),
-            ),
-            Positioned.fill(
-              top: 45,
-              child: AnimatedOpacity(
-                opacity: _progressAnimation.value,
-                // opacity: 1,
-                duration: const Duration(milliseconds: 150),
-                child: const Center(
+        scale: 1,
+        child: AnimatedBuilder(
+          animation: _linearProgressController,
+          builder: (context, child) {
+            return Stack(
+              alignment: Alignment.center,
+              children: [
+                Center(
                   child: SizedBox.square(
                     dimension: 100,
-                    child: CustomPaint(
-                      painter: LogoPainter(),
+                    child: RepaintBoundary(
+                      child: CustomPaint(
+                        painter: LinePainter(
+                          progressValue: _progressAnimation.value,
+                          strokeWidth: 10,
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ),
-          ],
+                Positioned.fill(
+                  top: 45,
+                  child: RepaintBoundary(
+                    child: AnimatedOpacity(
+                      opacity: _progressAnimation.value,
+                      // opacity: 1,
+                      duration: const Duration(milliseconds: 150),
+                      child: const Center(
+                        child: SizedBox.square(
+                          dimension: 100,
+                          child: CustomPaint(
+                            painter: LogoPainter(),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                // const LinearProgressIndicator(
+                //   value: .9,
+                // ),
+              ],
+            );
+          },
         ),
       ),
     );
