@@ -1,4 +1,4 @@
-import 'dart:ui';
+// import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
@@ -15,7 +15,7 @@ class _LogoLoadingWidgetState extends State<LogoLoadingWidget>
 
   late Animation<double> _progressAnimation;
 
-  late bool _showLogo = false;
+  // late bool _showLogo = false;
 
   _setupAnimation() {
     _linearProgressController = AnimationController(
