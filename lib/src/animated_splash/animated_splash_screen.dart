@@ -20,7 +20,6 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
 
   final int _loginAnimationDuration = 1500;
 
-
   late AnimationController _splashAnimationController;
   late AnimationController _doughnutAnimationController;
   late AnimationController _textAnimationController;
@@ -49,7 +48,6 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
       vsync: this,
       duration: Duration(milliseconds: _textAnimationDuration),
     );
-
 
     _splashTitleAnimation = CurvedAnimation(
         parent: _textAnimationController, curve: const Interval(0, .7));
@@ -95,13 +93,12 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
 
     _splashAnimationController.forward();
     _doughnutAnimationController.forward();
-    Future.delayed(const Duration(milliseconds: 600), (){
+    Future.delayed(const Duration(milliseconds: 600), () {
       _textAnimationController.forward();
-
     });
 
     _textAnimationController.addStatusListener((status) {
-      if(status == AnimationStatus.completed){
+      if (status == AnimationStatus.completed) {
         Future.delayed(const Duration(milliseconds: 1000), () {
           _doughnutAnimationController.reverse();
         });
@@ -243,13 +240,11 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
               Positioned(
                 left: 0,
                 right: 0,
-                bottom: _loginContainerAnimation.value > 0 ?
-                size.height *
-                    (.7 * (_loginContainerAnimation.value))
-                        .clamp(.52, .7) :
-                    size.height *
-                        (.52 * (_splashTitleAnimation.value))
-                            .clamp(.43, .52),
+                bottom: _loginContainerAnimation.value > 0
+                    ? size.height *
+                        (.7 * (_loginContainerAnimation.value)).clamp(.52, .7)
+                    : size.height *
+                        (.52 * (_splashTitleAnimation.value)).clamp(.43, .52),
                 child: AnimatedOpacity(
                   opacity: _splashTitleShowAnimation.value,
                   duration: const Duration(milliseconds: 1800),

@@ -1,18 +1,44 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_animation_practice/src/animated_splash/animated_splash_screen.dart';
-import 'package:flutter_animation_practice/src/animated_tabbar_scroll/tab_bar_scrollable.dart';
-import 'package:flutter_animation_practice/src/logo_loading/logo_loading_widget.dart';
-import 'package:flutter_animation_practice/src/overlay_widget/autocomplete_overlay_widget.dart';
-import 'package:flutter_animation_practice/src/render_object_chat/chat_widget.dart';
-import 'package:flutter_animation_practice/src/sliverpersisentheaderdelegate/detail_page.dart';
-import 'package:flutter_animation_practice/src/staggered_animation/staggered_animation_demo.dart';
+import 'dart:developer';
 
-void main() {
+import 'package:flutter/material.dart';
+import 'package:flutter_animation_practice/messages.g.dart';
+import 'package:flutter_animation_practice/src/main/main_page.dart';
+import 'package:flutter_animation_practice/utils/notification_utils.dart';
+import 'package:flutter_animation_practice/utils/timezonr_utils.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Future.wait([
+    configureLocalTimeZone(),
+    NotificationUtils.initializeNotification(),
+    NotificationUtils.requestPermission(),
+  ]);
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+    getDeviceModel();
+  }
+
+  void getDeviceModel() async {
+    DeviceInfo deviceInfo = DeviceInfo();
+
+    final deviceInfoApi = DeviceInfoApi();
+    deviceInfo = await deviceInfoApi.getDeviceInfo();
+
+    log('device name => ${deviceInfo.deviceModel}');
+  }
 
   // This widget is the root of your application.
   @override
@@ -26,120 +52,5 @@ class MyApp extends StatelessWidget {
       ),
       home: const MainPage(),
     );
-  }
-}
-
-class MainPage extends StatelessWidget {
-  const MainPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Widgets Practice'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: ListView(
-          children: [
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const AlbumDetailPage(),
-                ),
-              ),
-              child: const Text('Custom Sliver App bar delegate'),
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const AnimatedSplashScreen(),
-                ),
-              ),
-              child: const Text('Animated Splash Screen'),
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const LogoLoadingWidget(),
-                ),
-              ),
-              child: const Text('Skill Sewa Logo Loading'),
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const StaggeredDemo(),
-                ),
-              ),
-              child: const Text('Staggered Animation Demo'),
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const ChatBubbleRenderWidget(),
-                ),
-              ),
-              child: const Text('Render Object Chat Text Bubble Demo'),
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) =>
-                      const AutoCompleteSearchableOverlayWidgt(),
-                ),
-              ),
-              child: const Text('Overlay AutoComplete Form Field'),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const CustomScrollableTabBar(),
-                ),
-              ),
-              child: const Text('Scrollable Tab Bar'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class TestLifeCycle extends StatefulWidget {
-  const TestLifeCycle({super.key});
-
-  @override
-  State<TestLifeCycle> createState() => _TestLifeCycleState();
-}
-
-class _TestLifeCycleState extends State<TestLifeCycle>
-    with WidgetsBindingObserver {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return const Placeholder();
   }
 }
