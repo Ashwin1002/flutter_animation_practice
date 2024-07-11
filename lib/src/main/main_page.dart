@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animation_practice/src/animated_splash/animated_splash_screen.dart';
 import 'package:flutter_animation_practice/src/animated_tabbar_scroll/tab_bar_scrollable.dart';
+import 'package:flutter_animation_practice/src/download_file/download_file_screen.dart';
 import 'package:flutter_animation_practice/src/local_notification/local_notification_sample.dart';
 import 'package:flutter_animation_practice/src/logo_loading/logo_loading_widget.dart';
 import 'package:flutter_animation_practice/src/overlay_widget/autocomplete_overlay_widget.dart';
@@ -93,6 +94,15 @@ class MainPage extends StatelessWidget {
                 ),
               ),
               child: const Text('Notification Demo'),
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const DownloadFileScreen(),
+                ),
+              ),
+              child: const Text('Download File'),
             ),
           ],
         ),
