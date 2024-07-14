@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animation_practice/src/download_file/utils/download_status.dart';
+import 'package:flutter_animation_practice/src/download_file/utils/download_controller.dart';
 import 'package:flutter_animation_practice/src/download_file/widgets/widgets.dart';
 
 class DownloadFileScreen extends StatelessWidget {
@@ -37,11 +37,16 @@ class DownloadTile extends StatefulWidget {
 }
 
 class _DownloadTileState extends State<DownloadTile> {
-  final DownloadStatus _status = DownloadStatus.notDownloaded;
+  // final DownloadStatus _status = DownloadStatus.notDownloaded;
+
+  late final DownloadController _downloadController;
+  String? fileName;
 
   @override
   void initState() {
     super.initState();
+    _downloadController = DownloadController(url: widget.url);
+    fileName = _downloadController.fileName;
   }
 
   @override
