@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animation_practice/src/download_file/utils/download_controller.dart';
+import 'package:flutter_animation_practice/src/download_file/utils/download_status.dart';
 import 'package:flutter_animation_practice/src/download_file/widgets/widgets.dart';
 
 class DownloadFileScreen extends StatelessWidget {
@@ -16,7 +17,7 @@ class DownloadFileScreen extends StatelessWidget {
           padding: EdgeInsets.all(16.0),
           child: DownloadTile(
             url:
-                'https://resource.api.dev.medhavhi.com/media/resources/1ff4c29b-6902-4163-88d3-53c8c3022414.pdf',
+                'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WhatCarCanYouGetForAGrand.mp4',
           ),
         ),
       ),
@@ -39,30 +40,68 @@ class DownloadTile extends StatefulWidget {
 class _DownloadTileState extends State<DownloadTile> {
   // final DownloadStatus _status = DownloadStatus.notDownloaded;
 
-  late final DownloadController _downloadController;
+  late DownloadController _downloadController;
   String? fileName;
 
   @override
   void initState() {
     super.initState();
-    _downloadController = DownloadController(url: widget.url);
-    fileName = _downloadController.fileName;
+    _downloadController = DownloadController(widget.url)..init();
+
+    // fileName = _downloadController.fileName;
   }
 
   @override
   Widget build(BuildContext context) {
-    return const Card(
+    return Card(
       child: Padding(
-        padding: EdgeInsets.all(12.0),
+        padding: const EdgeInsets.all(12.0),
         child: Row(
           children: [
-            FilePreview(),
-            SizedBox(width: 20.0),
-            FileContent(),
-            SizedBox(width: 20.0),
+            const FilePreview(),
+            const SizedBox(width: 20.0),
+            const FileContent(),
+            const SizedBox(width: 20.0),
+            ValueListenableBuilder(
+              valueListenable: _downloadController.statusNotifier,
+              builder: (context, status, _) {
+                return status.when(
+                  initial: () => DownloadButton(
+                    onTap: () async =>
+                        _downloadController.downloadFileWithProgress(),
+                  ),
+                  checking: () => const CircularProgressIndicator(
+                    strokeCap: StrokeCap.round,
+                    strokeWidth: 6,
+                    color: Colors.blue,
+                  ),
+                  downloading: () => _buildDownloadingButton(status),
+                  done: () => DownloadedButton(
+                    onTap: () {
+                      print('downloaded');
+                      _downloadController.deleteFile();
+                    },
+                  ),
+                );
+              },
+            ),
           ],
         ),
       ),
     );
   }
+
+  Widget _buildDownloadingButton(DownloadStatus status) =>
+      ValueListenableBuilder(
+        valueListenable: _downloadController.downloadPercentNotifier,
+        builder: (context, percent, child) {
+          return DownloadingButton(
+            isPaused: !status.isDownloading,
+            onTap: () async => status.isDownloading
+                ? _downloadController.pause()
+                : _downloadController.downloadFileWithProgress(),
+            value: percent,
+          );
+        },
+      );
 }

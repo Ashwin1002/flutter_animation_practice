@@ -1,117 +1,322 @@
+import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:diacritic/diacritic.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animation_practice/src/download_file/utils/utils.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 
-typedef DownloadProgressCallback = void Function(int recieved, int total)?;
+typedef DownloadProgressCallback = void Function(int received, int total)?;
 
 RegExp get _fileNameRegex => RegExp(r'[^/]+$');
 
-/// Returns the base URL by removing the query parameters from the given URL.
+///
+/// A method which returns the base URL by removing the query parameters from the given URL.
+///
 String _getBaseUrl(String pUrl) {
-  // Parse the provided URL.
   final parse = Uri.parse(pUrl);
-
-  // Remove the query parameters if present.
   final uri = parse.query.isNotEmpty ? parse.replace(query: '') : parse;
-
-  // Convert the URI to string and ensure it doesn't end with '?'.
   String url = uri.toString();
   if (url.endsWith('?')) url = url.replaceAll('?', '');
-
   return url;
 }
 
-class DownloadController extends ChangeNotifier {
+///
+/// DownloadController, a class which helps to ease the download process from the url
+/// The key functions of the [DownloadController] are:
+/// [downloadFile(), resumeDownload(), cancelDownload(), removeDownload()]
+///
+class DownloadController {
+  ///
+  /// [_url] the url to download the file
+  ///
   final String _url;
 
-  DownloadController({
-    required String url,
-  }) : _url = url;
+  DownloadController(this._url);
 
-  /// [init] must be called to intialize download controller
-  void init({
-    Directory? directory,
-  }) async {
+  ///
+  /// [init] must be called to initialize the download controller.
+  /// The [_directory] is initialized, It is the reference to
+  /// the folder where the file is stored in the system.
+  ///
+  void init({Directory? directory}) async {
     _directory = directory ?? await getTemporaryDirectory();
+    await _checkDownloadPercentage();
   }
 
+  ///
   /// Directory where the downloaded files will be stored
+  ///
   late Directory _directory;
 
-  /// Dio instance [_dio] to download files
+  ///
+  /// Dio instance to handle HTTP requests
+  ///
   final Dio _dio = Dio();
 
-  ///Get Original downloadurl
+  ///
+  /// CancelToken instance to manage download cancellations
+  ///
+  CancelToken _cancelToken = CancelToken();
+
+  ///
+  /// ValueNotifier to track download status
+  ///
+  ValueNotifier<DownloadStatus> statusNotifier =
+      ValueNotifier<DownloadStatus>(DownloadStatus.initial);
+
+  ///
+  /// ValueNotifier to track download percentage
+  ///
+  ValueNotifier<double> downloadPercentNotifier = ValueNotifier<double>(0);
+
+  ///
+  /// Getter method to get the original download URL
+  ///
   String get url => _url;
 
-  /// Get file name which is to be saved in files
-  String? get fileName {
+  ///
+  /// List to store sizes of file chunks
+  ///
+  final List<int> _sizes = [];
+
+  ///
+  /// Getter to get file name with extension
+  ///
+  String? get fileNameWithExtension {
     final match = _fileNameRegex.firstMatch(_url);
-    if (match != null) {
-      return match.group(0);
-    }
-    return null;
+    return match?.group(0);
   }
 
+  ///
+  /// Getter to get the file type (extension)
+  ///
   String get fileType => _url.split('.').last;
 
-  Future<void> download({
-    CancelToken? cancelToken,
-    DownloadProgressCallback onRecieveProgress,
-    Map<String, dynamic>? queryParameters,
-    Options? options,
-  }) async {
-    await _dio.download(
-      _url,
-      localFilePath,
-      cancelToken: cancelToken,
-      onReceiveProgress: onRecieveProgress,
-      options: options,
-      queryParameters: queryParameters,
-    );
-  }
-
-  /// Constructs the local file path for caching purposes.
   ///
-  /// The function removes diacritics from the URL, decodes it, replaces spaces with underscores,
-  /// and then constructs a local file path using the temporary directory path and the file name
-  /// derived from the base URL.
+  /// Getter to get the local file path for caching purposes
+  ///
   String get localFilePath {
-    // Get the path of the temporary directory.
-    String? temporaryDirectoryPath = _directory.path;
-
-    // Remove diacritics and decode the URL, then replace spaces with underscores.
+    String temporaryDirectoryPath = _directory.path;
     String urlData = removeDiacritics(Uri.decodeFull(url)).replaceAll(' ', '_');
-
-    // Get the base URL without query parameters.
     var baseUrl = _getBaseUrl(urlData);
-
-    // Extract the file name from the base URL.
     String fileBaseName = path.basename(baseUrl);
-
-    // Construct and return the local cache file path.
     return path.join(temporaryDirectoryPath, 'Files', fileBaseName);
   }
 
-  Future<File?> getFileProgress() async {
-    /// File object of [localFile]
-    File localFile = File(localFilePath);
+  ///
+  /// Struct to get file data including file object, directory, file name, and extension
+  ///
+  ({File file, String directory, String basename, String extension})
+      get fileData => (
+            file: File(localFilePath),
+            directory: path.dirname(localFilePath),
+            extension: path.extension(localFilePath),
+            basename: path.basenameWithoutExtension(localFilePath),
+          );
 
-    /// Gets the part of [directory] before the last separator
-    String directory = path.dirname(localFilePath);
-
-    /// Gets the part of [fileName] after the last separator, and without any trailing file extension.
-    String fileName = path.basenameWithoutExtension(localFilePath);
-
-    /// Gets the file extension of [extensiion]: the portion of [fileName] from the last . to the end (including the . itself).
-    String extension = path.extension(localFilePath);
-
+  ///
+  /// Checks the current download percentage
+  ///
+  Future<void> _checkDownloadPercentage() async {
     String localRoute = localFilePath;
+    File localFileData = File(localRoute);
 
-    return null;
+    if (_sizes.isNotEmpty) {
+      _sizes.clear();
+    }
+
+    int sumSizes = 0;
+    bool isFullFile = false;
+
+    Response response = await _dio.head(_url);
+    int originalFileSize =
+        int.parse(response.headers.value('content-length') ?? '0');
+
+    bool isFileExistSync = localFileData.existsSync();
+
+    if (!isFileExistSync) {
+      statusNotifier.value = DownloadStatus.notDownloaded;
+    } else {
+      int localSize = localFileData.lengthSync();
+      _sizes.add(localSize);
+
+      int i = 1;
+
+      localRoute = '${fileData.directory}/${fileData.basename}'
+          '($i)${fileData.extension}';
+
+      File tempFile = File(localRoute);
+
+      while (tempFile.existsSync()) {
+        int tempSize = tempFile.lengthSync();
+        _sizes.add(tempSize);
+        i++;
+        localRoute = '${fileData.directory}/${fileData.basename}}'
+            '($i)${fileData.extension}';
+        tempFile = File(localRoute);
+      }
+
+      sumSizes = _sizes.fold(0, (p, c) => p + c);
+
+      isFullFile = sumSizes == originalFileSize;
+    }
+
+    var percent = sumSizes / originalFileSize;
+
+    log('percentage complete => $percent');
+
+    downloadPercentNotifier.value = percent;
+
+    statusNotifier.value = isFullFile
+        ? DownloadStatus.done
+        : percent == 0
+            ? DownloadStatus.notDownloaded
+            : DownloadStatus.partiallyDownloaded;
+  }
+
+  ///
+  /// Pauses the download and updates the download percentage
+  ///
+  void pause() async {
+    _cancelToken.cancel();
+    await _checkDownloadPercentage();
+  }
+
+  ///
+  /// Deletes the local file and resets the download progress
+  ///
+  void deleteFile() {
+    statusNotifier.value = DownloadStatus.initial;
+
+    Future.delayed(
+      const Duration(milliseconds: 1000),
+      () {
+        if (fileData.file.existsSync()) {
+          fileData.file.delete();
+        }
+        downloadPercentNotifier.value = 0.0;
+        statusNotifier.value = DownloadStatus.notDownloaded;
+      },
+    );
+  }
+
+  ///
+  /// Handles the download progress and updates the status accordingly
+  ///
+  void _onReceiveProgress(int received, int total) {
+    if (_cancelToken.isCancelled) return;
+
+    statusNotifier.value = DownloadStatus.downloading;
+
+    int receivedBytes = received + _sizes.fold(0, (p, c) => p + c);
+
+    downloadPercentNotifier.value = receivedBytes / total;
+
+    debugPrint(
+        'recieved: ${received.toFileSize()}\ntotal: ${total.toFileSize()}\n'
+        'percentNotifier: ${(downloadPercentNotifier.value * 100).toStringAsFixed(2)}');
+  }
+
+  ///
+  /// Downloads the file with progress tracking
+  ///
+  Future<void> downloadFileWithProgress() async {
+    statusNotifier.value = DownloadStatus.initial;
+    String localRoute = localFilePath;
+    File localFileData = File(localRoute);
+
+    if (_sizes.isNotEmpty) {
+      _sizes.clear();
+    }
+
+    Response response = await _dio.head(_url);
+    int originalFileSize =
+        int.parse(response.headers.value('content-length') ?? '0');
+
+    Options? options;
+
+    bool isFileExistSync = localFileData.existsSync();
+
+    if (isFileExistSync) {
+      statusNotifier.value = DownloadStatus.partiallyDownloaded;
+      int localSize = localFileData.lengthSync();
+      _sizes.add(localSize);
+
+      int i = 1;
+
+      localRoute = '${fileData.directory}/${fileData.basename}'
+          '($i)${fileData.extension}';
+
+      File tempFile = File(localRoute);
+
+      while (tempFile.existsSync()) {
+        int tempSize = tempFile.lengthSync();
+        _sizes.add(tempSize);
+        i++;
+        localRoute = '${fileData.directory}/${fileData.basename}'
+            '($i)${fileData.extension}';
+        tempFile = File(localRoute);
+      }
+
+      int sumSizes = _sizes.fold(0, (p, c) => p + c);
+
+      if (sumSizes < originalFileSize) {
+        log('still need to download');
+        options = Options(
+          headers: {'Range': 'bytes=$sumSizes-'},
+        );
+      } else {
+        log('has downloaded already');
+        await _checkDownloadPercentage();
+        return;
+      }
+    }
+
+    if (downloadPercentNotifier.value > 0 ||
+        downloadPercentNotifier.value < 1) {
+      if (_cancelToken.isCancelled) {
+        _cancelToken = CancelToken();
+      }
+
+      try {
+        await _dio.download(
+          _url,
+          localRoute,
+          options: options,
+          cancelToken: _cancelToken,
+          deleteOnError: false,
+          onReceiveProgress: _onReceiveProgress,
+        );
+      } catch (e) {
+        debugPrint('..dio.download()...ERROR: "${e.toString()}"');
+        return;
+      }
+    }
+
+    if (isFileExistSync) {
+      var raf = await fileData.file.open(mode: FileMode.writeOnlyAppend);
+
+      int i = 1;
+      String filePartLocalRouteStr =
+          '${fileData.directory}/${fileData.basename}'
+          '($i)${fileData.extension}';
+      File f = File(filePartLocalRouteStr);
+      while (f.existsSync()) {
+        raf = await raf.writeFrom(await f.readAsBytes());
+        await f.delete();
+
+        i++;
+        filePartLocalRouteStr = '${fileData.directory}/${fileData.basename}'
+            '($i)${fileData.extension}';
+        f = File(filePartLocalRouteStr);
+      }
+      await raf.close();
+
+      statusNotifier.value = DownloadStatus.done;
+    }
   }
 }
