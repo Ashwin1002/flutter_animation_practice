@@ -56,7 +56,7 @@ class _DeviceInfoApiCodec extends StandardMessageCodec {
   @override
   Object? readValueOfType(int type, ReadBuffer buffer) {
     switch (type) {
-      case 128: 
+      case 128:
         return DeviceInfo.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
@@ -75,8 +75,10 @@ class DeviceInfoApi {
   static const MessageCodec<Object?> pigeonChannelCodec = _DeviceInfoApiCodec();
 
   Future<DeviceInfo> getDeviceInfo() async {
-    const String __pigeon_channelName = 'dev.flutter.pigeon.com.example.flutter_animation_practice.DeviceInfoApi.getDeviceInfo';
-    final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
+    const String __pigeon_channelName =
+        'dev.flutter.pigeon.com.example.flutter_animation_practice.DeviceInfoApi.getDeviceInfo';
+    final BasicMessageChannel<Object?> __pigeon_channel =
+        BasicMessageChannel<Object?>(
       __pigeon_channelName,
       pigeonChannelCodec,
       binaryMessenger: __pigeon_binaryMessenger,

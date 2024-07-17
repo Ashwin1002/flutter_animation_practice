@@ -35,7 +35,9 @@ class DownloadController {
   ///
   final String _url;
 
-  DownloadController(this._url);
+  DownloadController(String url)
+      : _url = url,
+        assert(url.isNotEmpty, 'URL cannot be empty');
 
   ///
   /// [init] must be called to initialize the download controller.
@@ -81,7 +83,8 @@ class DownloadController {
   ///
   /// List to store sizes of file chunks
   ///
-  final List<int> _sizes = [];
+  // ignore: prefer_final_fields
+  var _sizes = <int>[];
 
   ///
   /// Getter to get file name with extension
@@ -106,17 +109,6 @@ class DownloadController {
     String fileBaseName = path.basename(baseUrl);
     return path.join(temporaryDirectoryPath, 'Files', fileBaseName);
   }
-
-  ///
-  /// Struct to get file data including file object, directory, file name, and extension
-  ///
-  ({File file, String directory, String basename, String extension})
-      get fileData => (
-            file: File(localFilePath),
-            directory: path.dirname(localFilePath),
-            extension: path.extension(localFilePath),
-            basename: path.basenameWithoutExtension(localFilePath),
-          );
 
   ///
   /// Checks the current download percentage
@@ -146,8 +138,8 @@ class DownloadController {
 
       int i = 1;
 
-      localRoute = '${fileData.directory}/${fileData.basename}'
-          '($i)${fileData.extension}';
+      localRoute = '${localFileData.directory}/${localFileData.basename}'
+          '($i)${localFileData.extension}';
 
       File tempFile = File(localRoute);
 
@@ -155,8 +147,8 @@ class DownloadController {
         int tempSize = tempFile.lengthSync();
         _sizes.add(tempSize);
         i++;
-        localRoute = '${fileData.directory}/${fileData.basename}}'
-            '($i)${fileData.extension}';
+        localRoute = '${localFileData.directory}/${localFileData.basename}}'
+            '($i)${localFileData.extension}';
         tempFile = File(localRoute);
       }
 
@@ -195,8 +187,8 @@ class DownloadController {
     Future.delayed(
       const Duration(milliseconds: 1000),
       () {
-        if (fileData.file.existsSync()) {
-          fileData.file.delete();
+        if (File(localFilePath).existsSync()) {
+          File(localFilePath).delete();
         }
         downloadPercentNotifier.value = 0.0;
         statusNotifier.value = DownloadStatus.notDownloaded;
@@ -214,7 +206,7 @@ class DownloadController {
 
     int receivedBytes = received + _sizes.fold(0, (p, c) => p + c);
 
-    downloadPercentNotifier.value = receivedBytes / total;
+    downloadPercentNotifier.value = (receivedBytes / total).clamp(0, 1);
 
     debugPrint(
         'recieved: ${received.toFileSize()}\ntotal: ${total.toFileSize()}\n'
@@ -227,7 +219,10 @@ class DownloadController {
   Future<void> downloadFileWithProgress() async {
     statusNotifier.value = DownloadStatus.initial;
     String localRoute = localFilePath;
+
     File localFileData = File(localRoute);
+    log('file name => ${localFileData.basename}');
+    log('file extension => ${localFileData.extension()}');
 
     if (_sizes.isNotEmpty) {
       _sizes.clear();
@@ -248,8 +243,8 @@ class DownloadController {
 
       int i = 1;
 
-      localRoute = '${fileData.directory}/${fileData.basename}'
-          '($i)${fileData.extension}';
+      localRoute = '${localFileData.directory}/${localFileData.basename}'
+          '($i)${localFileData.extension}';
 
       File tempFile = File(localRoute);
 
@@ -257,8 +252,8 @@ class DownloadController {
         int tempSize = tempFile.lengthSync();
         _sizes.add(tempSize);
         i++;
-        localRoute = '${fileData.directory}/${fileData.basename}'
-            '($i)${fileData.extension}';
+        localRoute = '${localFileData.directory}/${localFileData.basename}'
+            '($i)${localFileData.extension}';
         tempFile = File(localRoute);
       }
 
@@ -298,20 +293,21 @@ class DownloadController {
     }
 
     if (isFileExistSync) {
-      var raf = await fileData.file.open(mode: FileMode.writeOnlyAppend);
+      var raf = await localFileData.open(mode: FileMode.writeOnlyAppend);
 
       int i = 1;
       String filePartLocalRouteStr =
-          '${fileData.directory}/${fileData.basename}'
-          '($i)${fileData.extension}';
+          '${localFileData.directory}/${localFileData.basename}'
+          '($i)${localFileData.extension}';
       File f = File(filePartLocalRouteStr);
       while (f.existsSync()) {
         raf = await raf.writeFrom(await f.readAsBytes());
         await f.delete();
 
         i++;
-        filePartLocalRouteStr = '${fileData.directory}/${fileData.basename}'
-            '($i)${fileData.extension}';
+        filePartLocalRouteStr =
+            '${localFileData.directory}/${localFileData.basename}'
+            '($i)${localFileData.extension}';
         f = File(filePartLocalRouteStr);
       }
       await raf.close();

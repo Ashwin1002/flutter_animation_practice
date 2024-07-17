@@ -1,7 +1,7 @@
+import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'dart:math';
 
 class AnimatedSplashScreen extends StatefulWidget {
   const AnimatedSplashScreen({Key? key}) : super(key: key);
@@ -250,7 +250,7 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
                   duration: const Duration(milliseconds: 1800),
                   child: const Text(
                     "evenkoo",
-                    textScaleFactor: 1.55,
+                    textScaler: TextScaler.linear(1.55),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.white,
@@ -275,7 +275,7 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
                         children: [
                           Text(
                             "Skip",
-                            textScaleFactor: 1.2,
+                            textScaler: TextScaler.linear(1.2),
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 12.0,
@@ -341,7 +341,7 @@ class LoginContainerWidget extends StatelessWidget {
             const SizedBox(height: 25),
             const Text(
               "Welcome to Demo App, \n Sign in to continue",
-              textScaleFactor: 1.1,
+              textScaler: TextScaler.linear(1.1),
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
               style: TextStyle(

@@ -47,8 +47,6 @@ class _DownloadTileState extends State<DownloadTile> {
   void initState() {
     super.initState();
     _downloadController = DownloadController(widget.url)..init();
-
-    // fileName = _downloadController.fileName;
   }
 
   @override
@@ -68,7 +66,7 @@ class _DownloadTileState extends State<DownloadTile> {
                 return status.when(
                   initial: () => DownloadButton(
                     onTap: () async =>
-                        _downloadController.downloadFileWithProgress(),
+                        await _downloadController.downloadFileWithProgress(),
                   ),
                   checking: () => const CircularProgressIndicator(
                     strokeCap: StrokeCap.round,
@@ -78,7 +76,6 @@ class _DownloadTileState extends State<DownloadTile> {
                   downloading: () => _buildDownloadingButton(status),
                   done: () => DownloadedButton(
                     onTap: () {
-                      print('downloaded');
                       _downloadController.deleteFile();
                     },
                   ),
@@ -99,7 +96,7 @@ class _DownloadTileState extends State<DownloadTile> {
             isPaused: !status.isDownloading,
             onTap: () async => status.isDownloading
                 ? _downloadController.pause()
-                : _downloadController.downloadFileWithProgress(),
+                : await _downloadController.downloadFileWithProgress(),
             value: percent,
           );
         },
