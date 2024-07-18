@@ -107,7 +107,7 @@ class DownloadController {
     String urlData = removeDiacritics(Uri.decodeFull(url)).replaceAll(' ', '_');
     var baseUrl = _getBaseUrl(urlData);
     String fileBaseName = path.basename(baseUrl);
-    return path.join(temporaryDirectoryPath, 'Files', fileBaseName);
+    return path.join(temporaryDirectoryPath, fileBaseName);
   }
 
   ///
@@ -147,10 +147,13 @@ class DownloadController {
         int tempSize = tempFile.lengthSync();
         _sizes.add(tempSize);
         i++;
+
         localRoute = '${localFileData.directory}/${localFileData.basename}}'
             '($i)${localFileData.extension}';
         tempFile = File(localRoute);
       }
+
+      log('sizes => ${_sizes.map((e) => e.toFileSize())}');
 
       sumSizes = _sizes.fold(0, (p, c) => p + c);
 
@@ -208,9 +211,9 @@ class DownloadController {
 
     downloadPercentNotifier.value = (receivedBytes / total).clamp(0, 1);
 
-    debugPrint(
-        'recieved: ${received.toFileSize()}\ntotal: ${total.toFileSize()}\n'
-        'percentNotifier: ${(downloadPercentNotifier.value * 100).toStringAsFixed(2)}');
+    // debugPrint(
+    //     'recieved: ${received.toFileSize()}\ntotal: ${total.toFileSize()}\n'
+    //     'percentNotifier: ${(downloadPercentNotifier.value * 100).toStringAsFixed(2)}');
   }
 
   ///
@@ -256,6 +259,8 @@ class DownloadController {
             '($i)${localFileData.extension}';
         tempFile = File(localRoute);
       }
+
+      log('sizes => ${_sizes.map((e) => e.toFileSize())}');
 
       int sumSizes = _sizes.fold(0, (p, c) => p + c);
 

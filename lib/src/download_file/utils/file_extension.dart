@@ -62,7 +62,7 @@ extension FileExtension on File {
   ///
   /// Gets the file name
   ///
-  String get fileName => '$basename${extension()}';
+  String get fileName => dir_path.basename(path);
 
   ///
   /// Gets the file name with [DateTime.now().millisecondsSinceEpoch]

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animation_practice/src/download_file/utils/download_controller.dart';
 import 'package:flutter_animation_practice/src/download_file/utils/download_status.dart';
 import 'package:flutter_animation_practice/src/download_file/widgets/widgets.dart';
+import 'package:path_provider/path_provider.dart';
 
 class DownloadFileScreen extends StatelessWidget {
   const DownloadFileScreen({super.key});
@@ -46,7 +47,14 @@ class _DownloadTileState extends State<DownloadTile> {
   @override
   void initState() {
     super.initState();
-    _downloadController = DownloadController(widget.url)..init();
+    _downloadController = DownloadController(widget.url);
+    _initializeDownloadController();
+  }
+
+  void _initializeDownloadController() async {
+    _downloadController.init(
+      directory: await getExternalStorageDirectory(),
+    );
   }
 
   @override
