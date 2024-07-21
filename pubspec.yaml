@@ -33,6 +33,7 @@ dependencies:
   dio: ^5.5.0+1
   flutter:
     sdk: flutter
+  flutter_downloader: ^1.11.7
   flutter_local_notifications: ^16.3.2
   flutter_timezone: ^1.0.8
   path: ^1.9.0

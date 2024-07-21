@@ -5,6 +5,7 @@ import 'package:flutter_animation_practice/messages.g.dart';
 import 'package:flutter_animation_practice/src/main/main_page.dart';
 import 'package:flutter_animation_practice/utils/notification_utils.dart';
 import 'package:flutter_animation_practice/utils/timezonr_utils.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -13,6 +14,7 @@ Future<void> main() async {
     configureLocalTimeZone(),
     NotificationUtils.initializeNotification(),
     NotificationUtils.requestPermission(),
+    FlutterDownloader.initialize(debug: true, ignoreSsl: true)
   ]);
   runApp(const MyApp());
 }
