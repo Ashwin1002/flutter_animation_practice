@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animation_practice/src/download_file/background_downloader.dart';
 import 'package:flutter_animation_practice/src/download_file/utils/download_controller.dart';
 import 'package:flutter_animation_practice/src/download_file/utils/download_status.dart';
 import 'package:flutter_animation_practice/src/download_file/widgets/widgets.dart';
@@ -16,7 +17,7 @@ class DownloadFileScreen extends StatelessWidget {
       body: const Center(
         child: Padding(
           padding: EdgeInsets.all(16.0),
-          child: DownloadTile(
+          child: BackgroundFileDownloader(
             url:
                 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WhatCarCanYouGetForAGrand.mp4',
           ),

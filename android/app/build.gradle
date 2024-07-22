@@ -27,8 +27,8 @@ apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
 android {
     namespace "com.example.flutter_animation_practice"
-    // Step 1 : change the compileSdkVersion to 33
-    compileSdkVersion 33
+    // Step 1 : change the compileSdkVersion to 34
+    compileSdkVersion 34
     ndkVersion flutter.ndkVersion
  
     compileOptions {

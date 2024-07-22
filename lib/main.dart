@@ -14,7 +14,7 @@ Future<void> main() async {
     configureLocalTimeZone(),
     NotificationUtils.initializeNotification(),
     NotificationUtils.requestPermission(),
-    FlutterDownloader.initialize(debug: true, ignoreSsl: true)
+    FlutterDownloader.initialize(debug: true)
   ]);
   runApp(const MyApp());
 }
