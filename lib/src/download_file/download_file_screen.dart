@@ -19,7 +19,8 @@ class DownloadFileScreen extends StatelessWidget {
           padding: EdgeInsets.all(16.0),
           child: BackgroundFileDownloader(
             url:
-                'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WhatCarCanYouGetForAGrand.mp4',
+                // 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WhatCarCanYouGetForAGrand.mp4',
+                "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4",
           ),
         ),
       ),

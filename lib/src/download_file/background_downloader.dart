@@ -38,6 +38,11 @@ class _BackgroundFileDownloaderState extends State<BackgroundFileDownloader> {
   late bool _isPermissionReady;
   late String _localPath;
 
+  void retryDownload() async {
+    if (_taskID == null) return;
+    await FlutterDownloader.retry(taskId: _taskID!);
+  }
+
   void startDownload() async {
     await FlutterDownloader.enqueue(
       url: widget.url,
@@ -64,8 +69,9 @@ class _BackgroundFileDownloaderState extends State<BackgroundFileDownloader> {
 
   void removeDownload() async {
     if (_taskID == null) return;
-    await FlutterDownloader.remove(taskId: _taskID!);
+    await FlutterDownloader.remove(taskId: _taskID!, shouldDeleteContent: true);
     await _prepare();
+    setState(() {});
   }
 
   @override
@@ -101,13 +107,15 @@ class _BackgroundFileDownloaderState extends State<BackgroundFileDownloader> {
         var status = DownloadTaskStatus.fromInt(message[1] as int);
         var progress = message[2] as int;
 
-        print(
-          'Callback on UI isolate: '
-          'task ($taskID) is in status ($status) and process ($progress)',
-        );
-        if (status == DownloadTaskStatus.failed) {
-          startDownload();
+        if (kDebugMode) {
+          print(
+            'Callback on UI isolate: '
+            'task ($taskID) is in status ($status) and process ($progress)',
+          );
         }
+        // if (status == DownloadTaskStatus.failed) {
+        //   retryDownload();
+        // }
 
         setState(() {
           _taskID = taskID;
@@ -140,7 +148,6 @@ class _BackgroundFileDownloaderState extends State<BackgroundFileDownloader> {
 
     if (tasks == null) return;
 
-    log('tasks => $tasks');
     if (tasks.isNotEmpty) {
       for (var task in tasks) {
         // if (task.status == DownloadTaskStatus.failed) {
@@ -148,6 +155,8 @@ class _BackgroundFileDownloaderState extends State<BackgroundFileDownloader> {
         // }
         if (task.url == widget.url) {
           if (!mounted) return;
+
+          log('tasks => $task');
           setState(() {
             _taskID = task.taskId;
             _progress = task.progress;
@@ -190,38 +199,47 @@ class _BackgroundFileDownloaderState extends State<BackgroundFileDownloader> {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Row(
-          children: [
-            const FilePreview(),
-            const SizedBox(width: 20.0),
-            const FileContent(),
-            const SizedBox(width: 20.0),
-            if (!_showContent)
-              const Center(
-                child: CircularProgressIndicator(),
-              )
-            else
-              switch (_downloadTaskStatus) {
-                DownloadTaskStatus.complete => DownloadedButton(
-                    onTap: () => removeDownload(),
-                  ),
-                DownloadTaskStatus.paused => DownloadingButton(
-                    isPaused: true,
-                    value: _progress / 100,
-                    onTap: () => resumeDownload(),
-                  ),
-                DownloadTaskStatus.running => DownloadingButton(
-                    value: _progress / 100,
-                    onTap: () => pauseDownload(),
-                  ),
-                _ => DownloadButton(
-                    onTap: () => startDownload(),
-                  ),
-              }
-          ],
+    return InkWell(
+      onTap: () async {
+        if (_taskID == null) return;
+
+        await FlutterDownloader.open(taskId: _taskID!);
+      },
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Row(
+            children: [
+              const FilePreview(),
+              const SizedBox(width: 20.0),
+              const FileContent(),
+              const SizedBox(width: 20.0),
+              if (!_showContent)
+                const Center(
+                  child: CircularProgressIndicator(),
+                )
+              else
+                switch (_downloadTaskStatus) {
+                  DownloadTaskStatus.complete ||
+                  DownloadTaskStatus.canceled =>
+                    DownloadedButton(
+                      onTap: () => removeDownload(),
+                    ),
+                  DownloadTaskStatus.paused => DownloadingButton(
+                      isPaused: true,
+                      value: _progress / 100,
+                      onTap: () => resumeDownload(),
+                    ),
+                  DownloadTaskStatus.running => DownloadingButton(
+                      value: _progress / 100,
+                      onTap: () => pauseDownload(),
+                    ),
+                  _ => DownloadButton(
+                      onTap: () => startDownload(),
+                    ),
+                }
+            ],
+          ),
         ),
       ),
     );
