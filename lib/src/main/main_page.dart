@@ -6,6 +6,7 @@ import 'package:flutter_animation_practice/src/local_notification/local_notifica
 import 'package:flutter_animation_practice/src/logo_loading/logo_loading_widget.dart';
 import 'package:flutter_animation_practice/src/overlay_widget/autocomplete_overlay_widget.dart';
 import 'package:flutter_animation_practice/src/render_object_chat/chat_widget.dart';
+import 'package:flutter_animation_practice/src/resizable_grid/resizable_grid.dart';
 import 'package:flutter_animation_practice/src/sliverpersisentheaderdelegate/detail_page.dart';
 import 'package:flutter_animation_practice/src/staggered_animation/staggered_animation_demo.dart';
 
@@ -103,6 +104,15 @@ class MainPage extends StatelessWidget {
                 ),
               ),
               child: const Text('Download File'),
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const ResizableGridView(),
+                ),
+              ),
+              child: const Text('Resizable Grid'),
             ),
           ],
         ),
