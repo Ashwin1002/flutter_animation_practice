@@ -3,14 +3,16 @@ import Flutter
 // This is required for calling FlutterLocalNotificationsPlugin.setPluginRegistrantCallback method.
 import flutter_local_notifications
 
-class DeviceInfoApiImpl: NSObject, DeviceInfoApi {
-    func getDeviceInfo() -> DeviceInfo {
-        var deviceInfo = DeviceInfo()
-        deviceInfo.deviceModel = UIDevice.current.model
-        deviceInfo.deviceName = UIDevice.current.name // You can customize this for iOS
-        return deviceInfo
-    }
-}
+import flutter_downloader
+
+// class DeviceInfoApiImpl: NSObject, DeviceInfoApi {
+//     func getDeviceInfo() -> DeviceInfo {
+//         var deviceInfo = DeviceInfo()
+//         deviceInfo.deviceModel = UIDevice.current.model
+//         deviceInfo.deviceName = UIDevice.current.name // You can customize this for iOS
+//         return deviceInfo
+//     }
+// }
 
 @UIApplicationMain
 @objc class AppDelegate: FlutterAppDelegate {
@@ -29,8 +31,17 @@ class DeviceInfoApiImpl: NSObject, DeviceInfoApi {
     GeneratedPluginRegistrant.register(with: self)
 
     let controller = window?.rootViewController as! FlutterViewController
-    let api = DeviceInfoApiImpl()
-          DeviceInfoApiSetup.setUp(binaryMessenger: controller.binaryMessenger, api: api)
+    
+    FlutterDownloaderPlugin.setPluginRegistrantCallback(registerPlugins)
+      
+      // let api = DeviceInfoApiImpl()
+    //       DeviceInfoApiSetup.setUp(binaryMessenger: controller.binaryMessenger, api: api)
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
+}
+
+private func registerPlugins(registry: FlutterPluginRegistry) {
+    if (!registry.hasPlugin("FlutterDownloaderPlugin")) {
+       FlutterDownloaderPlugin.register(with: registry.registrar(forPlugin: "FlutterDownloaderPlugin")!)
+    }
 }
